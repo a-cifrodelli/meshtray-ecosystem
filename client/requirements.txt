@@ -1,0 +1,9 @@
+PyQt6>=6.4.0
+websockets>=11.0.0
+pytz
+python-dotenv
+cairosvg
+pyinstaller
+pytest
+
+

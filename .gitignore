@@ -1,0 +1,68 @@
+# Python cache & compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+client/.venv/
+server/.venv/
+bonus/.venv/
+
+# Environment files
+.env
+.env.local
+.env.*
+!.env.example
+
+# Certificates
+certs/
+**/certs/
+*.crt
+*.key
+*.pem
+
+# Database files
+data/
+**/data/
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE / Editor configurations
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# OS temporary files
+.DS_Store
+Thumbs.db
+
+# PyInstaller & Build artifacts
+build/
+dist/
+*.spec
+client/build/
+client/dist/
+client/*.spec
+
+# Compiled Binaries & debug logs
+Meshtray.exe
+client/Meshtray.exe
+Meshtray
+client/Meshtray
+meshtray_debug.log
+client/meshtray_debug.log
+
+# Temporary locked folders
+client_new/
+
+# Generated service file (contains machine-specific paths)
+etc/meshtray.service

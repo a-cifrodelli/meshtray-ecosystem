@@ -1,0 +1,12 @@
+asyncio-paho
+SQLAlchemy
+aiosqlite
+meshtastic
+fastapi
+websockets
+uvicorn
+python-dotenv
+pytest
+pytest-asyncio
+pytest-mock
+httpx

@@ -1,0 +1,15 @@
+[Unit]
+Description=Meshtray Ecosystem Service
+After=network.target
+
+[Service]
+Type=simple
+User={{USER}}
+WorkingDirectory={{INSTALL_DIR}}
+ExecStart={{INSTALL_DIR}}/server/launch.sh
+Restart=always
+RestartSec=5s
+Environment="PATH={{INSTALL_DIR}}/server/.venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
+
+[Install]
+WantedBy=multi-user.target

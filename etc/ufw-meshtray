@@ -1,0 +1,4 @@
+[meshtray-websocket]
+title=meshtray-websocket
+description=Meshtray-websocket-port
+ports=8088/tcp
