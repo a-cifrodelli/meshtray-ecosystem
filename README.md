@@ -84,11 +84,12 @@ meshtray-ecosystem/
 │   ├── main.py                 # Entry point principale del client (PyQt6 Application)
 │   ├── requirements.txt        # Dipendenze Python del client (incluso pytest)
 │   └── ui.py                   # Definizione delle finestre ed elementi grafici PyQt6
-├── etc/                        # Configurazione di sistema
-│   ├── install_service.sh          # Script interattivo installazione Systemd
-│   ├── meshtray.service.template   # Template Unità Systemd (genera meshtray.service)
-│   └── ufw-meshtray                # Regole per UFW (Firewall)
-└── server/                     # Codice sorgente del server
+└── server/                     # Codice sorgente e servizio del server
+    ├── installer/              # Installer unificato e configurazione di sistema Systemd
+    │   ├── install_service.sh      # Script interattivo installazione Systemd
+    │   ├── meshtray.service.template # Template Unità Systemd separato
+    │   └── ufw-meshtray            # Regole per UFW (Firewall)
+    ├── .env.example            # Template file di configurazione d'ambiente
     ├── config.py               # Gestore configurazioni e percorsi dinamici
     ├── db_engine.py            # Connessione ed inizializzazione DB (SQLAlchemy)
     ├── globals.py              # Stato globale dell'applicazione asincrona
@@ -161,11 +162,11 @@ Per eseguire il server in background all'avvio del sistema (consigliato per serv
 
 1. Rendi eseguibile lo script di installazione automatica:
    ```bash
-   chmod +x etc/install_service.sh
+   chmod +x server/installer/install_service.sh
    ```
 2. Eseguilo (**senza** `sudo` — i permessi vengono richiesti solo se necessario):
    ```bash
-   ./etc/install_service.sh
+   ./server/installer/install_service.sh
    ```
 3. Lo script ti chiederà interattivamente il **tipo di installazione**:
    * **`1` – Utente** (`~/.config/systemd/user/`): nessun privilegio richiesto. Il servizio è attivo solo quando l'utente è loggato (usa `loginctl enable-linger` per avviarlo al boot).

@@ -8,6 +8,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 TEMPLATE="$SCRIPT_DIR/meshtray.service.template"
 SERVICE_NAME="meshtray.service"
 
@@ -92,7 +93,7 @@ fi
 USER_HOME=$(getent passwd "$SERVICE_USER" | cut -d: -f6)
 
 # Percorso di installazione del progetto
-DEFAULT_DIR="${USER_HOME}/meshtray-ecosystem"
+DEFAULT_DIR="${PROJECT_ROOT}"
 read -rp "Percorso completo della cartella del progetto [${DEFAULT_DIR}]: " INPUT_DIR
 INSTALL_DIR="${INPUT_DIR:-$DEFAULT_DIR}"
 
@@ -122,9 +123,9 @@ echo ""
 read -rp "Procedere con l'installazione? (s/N): " FINAL_CONFIRM
 [[ "$FINAL_CONFIRM" =~ ^[sS]$ ]] || { echo "Installazione annullata."; exit 1; }
 
-# --- Generazione del file .service definitivo ---
+# --- Generazione del file .service temporaneo per installazione ---
 echo ""
-echo "[1/3] Generazione del file di servizio..."
+echo "[1/3] Preparazione file di servizio dal template $TEMPLATE ..."
 GENERATED="$SCRIPT_DIR/meshtray.service"
 
 if [ "$SCOPE" = "user" ]; then
@@ -171,7 +172,6 @@ if [ "$NEED_SUDO" -eq 1 ]; then
     sudo mkdir -p "$SYSTEMD_DIR"
     sudo cp "$GENERATED" "$INSTALLED"
     sudo chmod 644 "$INSTALLED"
-    # Se abbiamo scritto con sudo in user scope di un altro utente, assegniamo i permessi corretti a quell'utente
     if [ "$SCOPE" = "user" ]; then
         sudo chown -R "$SERVICE_USER:$SERVICE_USER" "$(dirname "$SYSTEMD_DIR")" 2>/dev/null || true
         sudo chown "$SERVICE_USER:$SERVICE_USER" "$INSTALLED"
@@ -182,15 +182,18 @@ else
     chmod 644 "$INSTALLED"
 fi
 
+# Pulizia file temporaneo generato localmente
+rm -f "$GENERATED"
+GENERATED=""
+
 # --- Attivazione del servizio ---
-echo "[3/3] Attivazione del servizio..."
+echo "[3/3] Attivazione del servizio Systemd..."
 
 if [ "$SCOPE" = "user" ]; then
     if [ "$SERVICE_USER" = "$CURRENT_USER" ]; then
         systemctl --user daemon-reload
         systemctl --user enable "$SERVICE_NAME"
     else
-        # Se l'utente è diverso ed è stato richiesto sudo, eseguiamo l'enable per quell'utente
         sudo -i -u "$SERVICE_USER" systemctl --user daemon-reload
         sudo -i -u "$SERVICE_USER" systemctl --user enable "$SERVICE_NAME"
     fi
@@ -208,33 +211,32 @@ fi
 trap - EXIT
 
 echo ""
-echo "=================================================="
-echo "  SUCCESSO! Servizio '$SERVICE_NAME' installato."
+echo "=================================================================="
+echo "  SUCCESSO! Servizio '$SERVICE_NAME' installato ed abilitato."
+echo ""
+echo "  ⚠️ ATTENZIONE: AZIONE RICHIESTA DALL'UTENTE ⚠️"
+echo "  Prima di avviare il servizio, devi configurare il file .env!"
+echo "  Copia '$INSTALL_DIR/server/.env.example' in '$INSTALL_DIR/.env'"
+echo "  ed inserisci credenziali MQTT e configurazioni di sistema."
 echo ""
 if [ "$SCOPE" = "user" ]; then
-    echo "  Comandi utili (servizio utente):"
+    echo "  Comandi utili per avviare e monitorare il servizio (User Scope):"
     if [ "$SERVICE_USER" = "$CURRENT_USER" ]; then
         echo "    systemctl --user start   $SERVICE_NAME"
-        echo "    systemctl --user stop    $SERVICE_NAME"
-        echo "    systemctl --user restart $SERVICE_NAME"
         echo "    systemctl --user status  $SERVICE_NAME"
         echo "    journalctl --user -u $SERVICE_NAME -f"
     else
         echo "    sudo -i -u $SERVICE_USER systemctl --user start   $SERVICE_NAME"
-        echo "    sudo -i -u $SERVICE_USER systemctl --user stop    $SERVICE_NAME"
-        echo "    sudo -i -u $SERVICE_USER systemctl --user restart $SERVICE_NAME"
         echo "    sudo -i -u $SERVICE_USER systemctl --user status  $SERVICE_NAME"
         echo "    sudo -i -u $SERVICE_USER journalctl --user -u $SERVICE_NAME -f"
     fi
     echo ""
-    echo "  Per avviarlo anche senza sessione attiva:"
+    echo "  Per mantenere attivo il servizio anche dopo il logout utente:"
     echo "    sudo loginctl enable-linger $SERVICE_USER"
 else
-    echo "  Comandi utili (servizio di sistema):"
+    echo "  Comandi utili per avviare e monitorare il servizio (System Scope):"
     echo "    sudo systemctl start   $SERVICE_NAME"
-    echo "    sudo systemctl stop    $SERVICE_NAME"
-    echo "    sudo systemctl restart $SERVICE_NAME"
     echo "    sudo systemctl status  $SERVICE_NAME"
     echo "    journalctl -u $SERVICE_NAME -f"
 fi
-echo "=================================================="
+echo "=================================================================="
